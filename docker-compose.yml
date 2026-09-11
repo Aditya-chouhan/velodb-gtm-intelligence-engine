@@ -1,0 +1,13 @@
+services:
+  api:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes: [".:/app"]
+    command: bash -lc "pip install -r requirements.txt && uvicorn app.api.routes:app --host 0.0.0.0 --port 8000"
+    ports: ["8000:8000"]
+  dashboard:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes: [".:/app"]
+    command: bash -lc "pip install -r requirements.txt && streamlit run app/dashboard.py --server.address 0.0.0.0"
+    ports: ["8501:8501"]
