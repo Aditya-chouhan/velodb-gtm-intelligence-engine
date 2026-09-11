@@ -1,38 +1,26 @@
 # ⚡ VeloDB Commercial Intelligence OS
 
-**An outside-in prototype for turning open-source activity, competitive technology signals, account timing, product evaluation, and sales outcomes into repeatable enterprise GTM actions.**
+**An outside-in, evidence-aware prototype for turning public technical signals into account prioritization, commercial-motion routing, technical POC plans, and eventually closed-loop revenue learning.**
 
 > Independent portfolio project by Aditya Chouhan. Not an official VeloDB product, endorsement, customer system, or claim of access to VeloDB internal data.
 
-## The commercial problem
+## What changed from a normal GTM demo
 
-For a developer-infrastructure company, the hard problem is not generating more contacts. It is answering:
+This repository is deliberately not a “scrape leads → generate emails” project. It tries to answer the higher-value questions a developer-infrastructure GTM team faces:
 
-1. **Who** is entering a relevant technical buying window?
-2. **Why now?**
-3. **Which VeloDB / Apache Doris motion fits?**
-4. **What evidence supports that conclusion?**
-5. **What technical POC would actually validate the hypothesis?**
-6. **How should OSS / product intent change prioritization?**
-7. **What happened afterward, and what should the GTM system learn?**
-
-This project models that revenue-intelligence layer.
-
-## Architecture
+1. Who has a technically relevant workload?
+2. What is **observed** versus merely **inferred**?
+3. Which VeloDB / Apache Doris commercial motion fits the evidence?
+4. What would a fair technical POC need to prove?
+5. How could OSS/product signals change prioritization if the company later authorized them?
+6. How should downstream meetings, POCs, opportunities, wins and losses feed back into the system?
 
 ```text
 PUBLIC / AUTHORIZED SIGNALS
-│
-├─ OSS / ecosystem activity
-├─ competitive technology
-├─ engineering hiring
-├─ growth / timing
-├─ workload evidence
-└─ authorized product telemetry*
         ↓
 ENTITY + EVIDENCE LAYER
         ↓
-FIT / INTENT / TIMING
+TECHNICAL FIT / TIMING
         ↓
 OPPORTUNITY SCORE
         ↓
@@ -49,187 +37,142 @@ MEETING → POC → OPPORTUNITY → WON / LOST
 OUTCOME ANALYSIS → FUTURE SCORING REVIEW
 ```
 
-`*` Product/trial signals are modeled only with fictional demo inputs unless the company explicitly authorizes access.
+## Current evidence status
+
+| Layer | Status | Honest boundary |
+|---|---|---|
+| Fictional workflow dataset | implemented | proves software behavior only |
+| Public observed account universe | **implemented with source URLs** | proves cited public technical evidence, **not buying intent** |
+| Public web collector | **implemented** | verifies page reachability + disclosed keyword presence |
+| Weekly public-source smoke test | **implemented in GitHub Actions** | source health only; no intent claim |
+| Competitive/use-case routing | implemented | deterministic hypothesis routing |
+| Technical POC planner | implemented | plan generation, not benchmark performance |
+| Apache Doris workload harness | **implemented** | runnable schema/data/query procedure; no timings claimed yet |
+| Internal VeloDB trial/product telemetry | unavailable / not claimed | would require authorization |
+| Real campaign, pipeline or revenue outcomes | unavailable / not claimed | closed-loop module is architectural until real outcomes exist |
+| Apache Doris upstream contribution | planned, **not claimed** | contribution must solve a real upstream need |
+
+## Real public account universe
+
+`data/real_target_accounts.json` currently contains a small, intentionally inspectable set of companies selected because public engineering/ecosystem material documents VeloDB-relevant workloads:
+
+- **Contentsquare** — ClickHouse, Kafka/Flink and near-real-time customer analytics;
+- **QuestionPro** — ClickHouse + Kafka pipeline for real-time BI over billions of rows;
+- **Razorpay** — Trino with Spark/Hudi/S3/Hive Metastore;
+- **Rapido** — Trino for large-scale analytics, KPI/system metrics and BI visualization;
+- **Vimeo** — ClickHouse-based real-time video analytics at very large event volume.
+
+Every real account is marked `dataset_classification=publicly_observed`, carries source URLs, and includes a discovery hypothesis. None is labeled a “lead,” “buyer,” or “migration opportunity” merely because a technology was detected.
+
+Run the public set:
+
+```bash
+python -m app.main --dataset public
+```
+
+The Streamlit dashboard also lets a reviewer switch between **Fictional demo** and **Public observed accounts**.
+
+## Live public-source collector
+
+`app/collectors/public_web.py` uses only the Python standard library to retrieve configured public pages, strip markup, and record disclosed keyword hits. `scripts/refresh_public_evidence.py` creates a receipt containing:
+
+- URL;
+- retrieval timestamp;
+- HTTP status;
+- matched disclosed keywords;
+- visible failure state.
+
+A keyword hit means exactly that: **the term appeared on the retrieved page**. It is not silently promoted into production usage, pain or intent.
+
+```bash
+python scripts/refresh_public_evidence.py --check
+```
+
+`.github/workflows/public-signal-smoke.yml` runs this weekly and uploads the receipt as a 30-day workflow artifact.
 
 ## Commercial motions
 
-| Observed signal | Routed motion | What to validate |
+| Observed signal | Routed motion | What the POC should validate |
 |---|---|---|
-| ClickHouse | Competitive / migration | concurrency, joins, freshness, operational complexity, cost |
-| Elasticsearch / OpenSearch | Observability/search consolidation | search + analytics performance, retention economics, stack fragmentation |
-| Loki | Large-scale log analytics | log-search latency, cardinality, storage cost, scale |
-| Trino / Hive | Lakehouse acceleration | interactive latency, concurrency, serving-layer efficiency |
-| AI / RAG / agents | Context / agent observability | JSON/search/analytics convergence, freshness, trace volume |
-| Customer-facing analytics | Real-time product analytics | P95 latency, peak concurrency, ingestion lag, workload cost |
+| ClickHouse | competitive / migration evaluation | concurrency, joins, freshness, operational complexity, cost |
+| Elasticsearch / OpenSearch | observability/search consolidation | search + analytics performance, retention economics, fragmentation |
+| Loki | large-scale log analytics | search latency, cardinality, storage economics, scale |
+| Trino / Hive | lakehouse / serving acceleration | interactive latency, concurrency, serving-layer efficiency |
+| AI / RAG / agents | context / agent observability | structured + event analytics, freshness, operational simplification |
+| customer-facing analytics | real-time product analytics | P95 latency, peak concurrency, ingestion lag, cost |
 
-The system does **not** claim that detecting a technology proves pain. Each pain statement is stored as a hypothesis requiring discovery validation.
+The system never treats detected technology as proof of dissatisfaction.
 
-## 1. Evidence-aware account scoring
+## Apache Doris technical workload harness
 
-The deterministic scorer weighs technical fit and commercial timing signals such as:
-
-- ClickHouse / Elasticsearch / Loki / Trino-Hive presence
-- Kafka / Flink
-- customer-facing real-time analytics
-- AI / agent infrastructure
-- data-platform hiring
-- large or fast-growing data scale
-- multiple analytical databases
-- recent growth
-
-Every account gets a score, confidence, priority band, matched rules, and source-coverage status.
-
-### Evidence integrity
-
-**Observed** = a publicly verifiable claim with a source.  
-**Hypothesis** = an interpretation that must be validated.
-
-`ready_for_outreach=true` requires at least two observed signals and ≥80% source coverage.
-
-## 2. Competitive / use-case motion routing
-
-A high score is not enough. The engine routes an account into a commercial motion so sales does not use the same pitch everywhere.
+`benchmark/doris/` adds a reproducible **agent-observability analytical workload**:
 
 ```text
-ClickHouse   → migration / competitive evaluation
-Elasticsearch→ observability / search consolidation
-Loki         → log analytics economics
-Trino/Hive   → lakehouse serving acceleration
-AI agents    → context / agent observability
-Real-time app→ user-facing analytics
+schema.sql             Doris table design
+generate_events.py     deterministic synthetic event generator
+queries.sql            recent-window, tenant/model, error, trace and aggregation queries
+run.sh                 Stream Load + query execution procedure
+README.md              fair benchmark protocol + evidence boundaries
 ```
 
-## 3. Technical POC planner
+Run it against a real Apache Doris instance:
 
-This is the biggest upgrade over a normal “AI SDR” demo.
-
-For each routed motion, the engine generates:
-
-- the technical hypothesis to validate;
-- representative dataset guidance;
-- benchmark workload;
-- concurrency / ingestion tests;
-- measurable success criteria;
-- a discovery-first fallback when evidence is insufficient.
-
-Example ClickHouse evaluation:
-
-```text
-Current signal: ClickHouse + Kafka + customer-facing analytics
-
-Hypothesis:
-Concurrency, joins, freshness, or operational complexity may justify
-an Apache Doris / VeloDB evaluation.
-
-Test:
-• representative production schema
-• 10 / 30 / 50+ concurrent users
-• join + aggregation workloads
-• streaming ingestion during queries
-• normalized infrastructure comparison
-
-Measure:
-• P50 / P95 / P99 latency
-• concurrency throughput
-• ingestion lag
-• cost per workload unit
-• operational complexity
+```bash
+bash benchmark/doris/run.sh
 ```
 
-This helps bridge account intelligence to the work a seller / solution architect would need to progress a technical deal.
+### Important benchmark boundary
 
-## 4. Open-source → revenue commercialization model
+The environment used to build this portfolio artifact did not expose a Docker daemon or a running Doris cluster. Therefore this repository currently claims **zero Doris latency/throughput benchmark results**. The harness exists so a result can be produced reproducibly on real infrastructure instead of invented.
 
-Open-source activity is **not purchase intent**. The project therefore models commercialization as a combination of independent signals:
+Any later competitive benchmark should disclose software versions, hardware, data distribution, concurrency, ingestion state, repeated-run policy, P50/P95/P99 latency, throughput, failures and cost assumptions.
+
+## Open-source → revenue model
+
+Open-source activity alone is not purchase intent. The model therefore separates public/community signals from authorized internal product signals.
 
 ```text
 OSS activity
-   +
-known company identity
-   +
-technical fit
-   +
-commercial timing
-   +
-authorized trial/product intent
-   ↓
+  + company identity
+  + technical fit
+  + timing / scale
+  + authorized product intent (only if VeloDB supplies it)
+  ↓
 commercial stage
 ```
 
-Supported modeled signals include OSS activity, docs interest, trial start, meaningful data load, repeat querying, multi-user adoption, integration connection, enterprise domain, and technical fit.
+The public project can model `oss_activity`, `enterprise_domain` and `technical_fit`; signals such as trial start, data loaded, repeat queries, multi-user adoption and integrations must come from an authorized system and are never fabricated here.
 
-Stages:
+## Closed-loop revenue learning
 
-- community / low commercial intent
-- nurture / technical education
-- high-intent evaluation
-- sales-ready PQL
-
-The public project does **not** claim access to VeloDB telemetry or private Apache Doris user data.
-
-## 5. Closed-loop revenue learning
-
-The feedback layer tracks outcomes such as:
+The feedback module can summarize:
 
 ```text
 no reply → reply → meeting → POC → opportunity → won / lost
 ```
 
-It summarizes which signal families are associated with stronger downstream outcomes.
-
-Crucially, it **does not automatically rewrite production weights**. A real deployment should require minimum sample sizes, a holdout set, statistical evaluation, and human approval before changing routing logic.
-
-## What this demonstrates
-
-This repo is designed to show how several GTM-engineering disciplines combine into one commercial system:
-
-- market / technical signal intelligence
-- deterministic scoring
-- evidence provenance
-- competitive positioning
-- technical discovery
-- POC strategy
-- product-led / OSS commercialization
-- sales activation
-- outcome measurement
-- revenue learning
-
-That is a materially different problem from “scrape leads and write emails.”
+It deliberately does **not** auto-rewrite production scoring weights. Real reweighting should require adequate samples, a control/holdout design, statistical evaluation and human approval.
 
 ## Repository structure
 
 ```text
 app/
-├── agents/
-│   ├── orchestrator.py
-│   ├── strategist.py
-│   └── personalization.py
-├── intelligence/
-│   ├── evidence.py
-│   ├── opportunity_mapper.py
-│   ├── poc_planner.py
-│   ├── commercialization.py
-│   └── feedback_loop.py
-├── scoring/
-│   └── scoring.py
-├── api/
-│   └── routes.py
-├── dashboard.py
-└── main.py
+├── agents/                 account strategy + activation
+├── collectors/             public evidence retrieval
+├── intelligence/           evidence, motion, POC, commercialization, feedback
+├── scoring/                deterministic scoring
+├── api/                    FastAPI
+├── dashboard.py            reviewer-facing Streamlit console
+└── main.py                 CLI for demo/public datasets
 
+benchmark/doris/             runnable Apache Doris workload harness
 data/
-└── demo_accounts.json
-
-docs/
-├── architecture.md
-├── gtm-strategy.md
-├── scoring-methodology.md
-└── COMMERCIAL_INTELLIGENCE_OS.md
-
+├── demo_accounts.json       fictional software-behavior fixture
+└── real_target_accounts.json public observed account evidence
+scripts/
+└── refresh_public_evidence.py
 tests/
-├── test_scoring.py
-├── test_orchestrator.py
-└── test_commercial_os.py
+.github/workflows/
 ```
 
 ## Run locally
@@ -239,49 +182,30 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python -m app.main
+pytest -q
+python -m app.main --dataset demo
+python -m app.main --dataset public
 streamlit run app/dashboard.py
 uvicorn app.api.routes:app --reload
-pytest -q
 ```
 
-API docs are available at `http://localhost:8000/docs` when FastAPI is running.
+## Open-source contribution policy
 
-## Demo-data policy
+See `docs/OPEN_SOURCE_CONTRIBUTION_PLAN.md`. The rule is simple: no meaningless upstream PR for a portfolio badge. A Doris contribution should come from a reproduced issue, documentation gap, example problem, test gap or other concrete upstream need.
 
-The committed account dataset uses fictional `.example` companies. This makes the software reproducible without publishing unsupported claims about real prospects.
+## What this could become inside VeloDB
 
-A production implementation should preserve, at minimum:
+With explicit internal authorization, the same architecture could add:
 
-- source URL;
-- retrieval timestamp;
-- signal type;
-- entity-resolution confidence;
-- observed vs inferred classification;
-- scoring version;
-- activation decision;
-- downstream commercial outcome.
+- Apache Doris community/account resolution;
+- VeloDB Cloud trial/PQL telemetry;
+- CRM opportunity stages and seller actions;
+- partner/co-sell signals;
+- technical POC results;
+- loss reasons and competitive outcomes;
+- signal-to-pipeline and signal-to-win evaluation.
 
-## What a real deployment would measure
-
-A real company deployment should be evaluated against business outcomes, including:
-
-- OSS/community → known-account conversion;
-- known-account → opportunity conversion;
-- PQL → meeting / POC conversion;
-- signal-based prioritization lift versus control;
-- POC win rate by technical motion;
-- time from meaningful signal to seller action;
-- pipeline / revenue influenced by signal family;
-- false-positive rate and seller trust.
-
-None of those business results are claimed by this portfolio repository.
-
-## Relationship to my broader GTM engineering portfolio
-
-This project combines patterns I have separately implemented across signal intelligence, AI revenue agents, CRM control planes, workflow orchestration, GTM data quality, revenue warehousing, evaluation, and closed-loop learning.
-
-The goal here is to show how those capabilities can be assembled around one developer-infrastructure company's commercialization problem rather than presented as disconnected demos.
+That is the path from an outside-in portfolio prototype to an actual **open-source-to-enterprise revenue intelligence layer**.
 
 ## Author
 
@@ -293,4 +217,4 @@ GitHub: https://github.com/Aditya-chouhan
 
 ## Disclaimer
 
-This is an independent portfolio case study and software prototype. It is not affiliated with or endorsed by VeloDB or the Apache Software Foundation. It does not use private VeloDB customer, product, CRM, trial, partner, or pipeline data. Apache Doris and other product names are referenced only to model public technical GTM scenarios.
+This is an independent portfolio case study and software prototype. It is not affiliated with or endorsed by VeloDB or the Apache Software Foundation. It does not use private VeloDB customer, product, CRM, trial, partner, pipeline or revenue data. Public-account scoring is a research/prioritization rubric, not a claim that any named company is a VeloDB prospect or is dissatisfied with its current technology.
