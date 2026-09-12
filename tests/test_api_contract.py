@@ -12,6 +12,7 @@ def test_health_exposes_scoring_version():
 
 def test_meta_keeps_research_boundary_explicit():
     payload = meta()
+    assert payload["purpose"] == "research_and_routing_rubric"
     assert payload["purchase_probability_model"] is False
     assert payload["private_velodb_data_used"] is False
 
@@ -29,3 +30,13 @@ def test_account_defaults_are_isolated_and_counter_signals_supported():
 def test_observed_source_must_be_valid_url_when_present():
     with pytest.raises(ValidationError):
         Evidence(type="observed", claim="Uses ClickHouse", source="not-a-url")
+
+
+def test_invalid_evidence_type_is_rejected():
+    with pytest.raises(ValidationError):
+        Evidence(type="fact", claim="Unsupported evidence label", source="https://example.com")
+
+
+def test_blank_company_is_rejected():
+    with pytest.raises(ValidationError):
+        Account(company="", signals=["clickhouse"])
