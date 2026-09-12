@@ -65,18 +65,11 @@ Confidence is based on source coverage and independent corroboration—not the n
 
 ### Governed scoring configuration
 
-The model weights are not hidden inside business logic. They live in:
+The model weights live in the packaged policy file:
 
-[`config/scoring_v2.json`](config/scoring_v2.json)
+[`app/scoring/scoring_v2.json`](app/scoring/scoring_v2.json)
 
-That file versions:
-
-- dimension caps;
-- technical / timing / pain signal weights;
-- commercial-intent weights;
-- counter-signal penalties.
-
-`app/scoring/scoring.py` loads the configuration and emits `scoring_version` with every analysis result. A production deployment should review scoring changes as governed model changes rather than ad-hoc code edits.
+That file versions dimension caps, technical/timing/pain weights, commercial-intent weights, and counter-signal penalties. `app/scoring/scoring.py` loads it as package data and emits `scoring_version` with every analysis result, so editable installs and built distributions use the same policy.
 
 Full methodology: [`docs/SCORING_MODEL_V2.md`](docs/SCORING_MODEL_V2.md)
 
@@ -105,14 +98,7 @@ Full methodology: [`docs/SCORING_MODEL_V2.md`](docs/SCORING_MODEL_V2.md)
 - **Rapido** — Trino for large-scale analytics, KPI/system metrics and BI
 - **Vimeo** — ClickHouse-based real-time video analytics at high event volume
 
-Each account contains:
-
-- source-backed observed claims;
-- explicit hypotheses;
-- modeled buying roles, not inferred individuals;
-- counter-signals such as incumbent success or lack of observed pain;
-- a routed technical motion;
-- a POC blueprint.
+Each account contains source-backed observed claims, explicit hypotheses, modeled buying roles rather than inferred individuals, counter-signals such as incumbent success or lack of observed pain, a routed technical motion, and a POC blueprint.
 
 None is labeled a buyer, lead, or migration opportunity solely because a technology is present.
 
@@ -122,18 +108,7 @@ python -m app.main --dataset public
 
 ## Executive dashboard
 
-The Streamlit UI starts with an executive market view showing:
-
-- priority score;
-- technical fit;
-- pain evidence;
-- timing;
-- intent;
-- evidence quality;
-- counter-signal penalty;
-- routed commercial motion.
-
-The account drill-down then exposes the evidence, hypotheses, buying-role model, POC plan, talk track, and evidence gate.
+The Streamlit UI starts with an executive market view showing priority score, technical fit, pain evidence, timing, intent, evidence quality, counter-signal penalty, and routed commercial motion. The account drill-down then exposes evidence, hypotheses, buying-role model, POC plan, talk track, and evidence gate.
 
 ```bash
 streamlit run app/dashboard.py
@@ -196,16 +171,7 @@ Any future result should disclose software versions, infrastructure, row count, 
 
 ## What changes with internal VeloDB access
 
-With explicit authorization, the same system could add:
-
-- Apache Doris community/account resolution;
-- VeloDB Cloud trial activation and PQL telemetry;
-- repeat-query, data-loaded, multi-user and integration signals;
-- CRM opportunity stages and seller actions;
-- partner/co-sell context;
-- technical POC results and blockers;
-- competitive loss reasons;
-- signal-to-meeting, signal-to-POC, signal-to-pipeline and signal-to-win evaluation.
+With explicit authorization, the same system could add Apache Doris community/account resolution, VeloDB Cloud trial activation and PQL telemetry, repeat-query/data-loaded/multi-user/integration signals, CRM stages and seller actions, partner/co-sell context, technical POC results and blockers, competitive loss reasons, and signal-to-meeting/POC/pipeline/win evaluation.
 
 That is the path from an outside-in system to an **open-source-to-enterprise revenue intelligence layer**.
 
@@ -222,14 +188,13 @@ It does **not** auto-rewrite weights. Production recalibration should require su
 ## Repository structure
 
 ```text
-config/
-└── scoring_v2.json         versioned scoring policy
-
 app/
 ├── agents/                 strategy + activation
 ├── collectors/             public evidence retrieval
 ├── intelligence/           evidence, routing, POC, commercialization, feedback
-├── scoring/                governed multidimensional scoring
+├── scoring/
+│   ├── scoring.py          governed multidimensional scorer
+│   └── scoring_v2.json     packaged versioned scoring policy
 ├── api/                    FastAPI contract + model metadata
 ├── dashboard.py            executive + account review UI
 └── main.py                 CLI for demo/public datasets
@@ -249,31 +214,16 @@ tests/
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e '.[dev]'
 
-python -m pytest -q
-python -m app.main --dataset public
+make check
 streamlit run app/dashboard.py
 uvicorn app.api.routes:app --reload
 ```
 
 ## Validation coverage
 
-The test suite checks, among other things:
-
-- model versioning and score dimensions;
-- duplicate-signal deduplication;
-- score bounds;
-- counter-signal behavior;
-- confidence independence from raw signal count;
-- unknown-signal visibility;
-- evidence/source validation;
-- API boundary metadata;
-- POC routing;
-- commercialization stages;
-- feedback-loop guardrails;
-- public collector parsing;
-- end-to-end account orchestration.
+The test suite checks model versioning and score dimensions, duplicate-signal deduplication, score bounds, counter-signal behavior, confidence independence from raw signal count, unknown-signal visibility, evidence/source validation, API boundary metadata, POC routing, commercialization stages, feedback-loop guardrails, public collector parsing, and end-to-end orchestration.
 
 GitHub Actions also executes the public-account dataset so configuration or model changes cannot silently break the flagship path.
 
@@ -285,8 +235,8 @@ GitHub Actions also executes the public-account dataset so configuration or mode
 - unknown signals are surfaced;
 - confidence comes from evidence quality, not signal volume;
 - counter-evidence reduces priority;
-- scoring is versioned (`2.0.0`) and externally configured;
-- API metadata explicitly states this is not a purchase-probability model;
+- scoring is versioned (`2.0.0`) and packaged as explicit policy;
+- API metadata states this is not a purchase-probability model;
 - CI tests decision logic and public-dataset execution;
 - weekly source checks surface stale/broken evidence;
 - private VeloDB data is never implied;
