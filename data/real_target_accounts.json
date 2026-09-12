@@ -6,27 +6,13 @@
     "retrieved_at": "2026-09-11",
     "signals": ["clickhouse", "kafka_flink", "realtime_product", "customer_dashboards", "large_scale"],
     "commercial_signals": ["enterprise_domain", "technical_fit"],
+    "counter_signals": ["incumbent_meeting_requirements", "deep_incumbent_investment", "no_observed_pain"],
     "buying_committee": ["VP / Head of Data Platform", "Director of Data Engineering", "Analytics Infrastructure Lead"],
     "evidence": [
-      {
-        "type": "observed",
-        "claim": "Contentsquare's engineering blog says ClickHouse is its database of choice to store and serve customer analytics.",
-        "source": "https://engineering.contentsquare.com/tags/clickhouse/"
-      },
-      {
-        "type": "observed",
-        "claim": "Contentsquare documented a real-time ClickHouse architecture with sub-minute freshness requirements and scalability from tens of thousands to 100k+ events per second.",
-        "source": "https://engineering.contentsquare.com/2022/real-time-events-reconciliation-clickhouse/"
-      },
-      {
-        "type": "observed",
-        "claim": "Contentsquare describes Kafka and Flink as important parts of its data pipeline feeding analytical workloads into ClickHouse.",
-        "source": "https://engineering.contentsquare.com/2022/flink-external-rocksdb-state-to-aerospike/"
-      },
-      {
-        "type": "hypothesis",
-        "claim": "Because ClickHouse is deeply embedded and already meeting important requirements, any VeloDB conversation would need a narrowly defined technical advantage rather than a generic migration pitch."
-      }
+      {"type": "observed", "claim": "Contentsquare's engineering blog says ClickHouse is its database of choice to store and serve customer analytics.", "source": "https://engineering.contentsquare.com/tags/clickhouse/"},
+      {"type": "observed", "claim": "Contentsquare documented a real-time ClickHouse architecture with sub-minute freshness requirements and scalability from tens of thousands to 100k+ events per second.", "source": "https://engineering.contentsquare.com/2022/real-time-events-reconciliation-clickhouse/"},
+      {"type": "observed", "claim": "Contentsquare describes Kafka and Flink as important parts of its data pipeline feeding analytical workloads into ClickHouse.", "source": "https://engineering.contentsquare.com/2022/flink-external-rocksdb-state-to-aerospike/"},
+      {"type": "hypothesis", "claim": "Because ClickHouse is deeply embedded and already meeting important requirements, any VeloDB conversation would need a narrowly defined technical advantage rather than a generic migration pitch."}
     ]
   },
   {
@@ -36,27 +22,13 @@
     "retrieved_at": "2026-09-11",
     "signals": ["clickhouse", "kafka_flink", "realtime_product", "customer_dashboards", "large_scale"],
     "commercial_signals": ["enterprise_domain", "technical_fit"],
+    "counter_signals": ["recent_successful_migration_to_incumbent", "incumbent_meeting_requirements", "no_observed_pain"],
     "buying_committee": ["CTO / VP Engineering", "Head of Data Engineering", "BI Platform Lead"],
     "evidence": [
-      {
-        "type": "observed",
-        "claim": "QuestionPro says it selected ClickHouse after evaluating multiple analytical databases for a system handling billions of rows.",
-        "source": "https://www.questionpro.com/engineering/software%20engineering/data%20engineering/how-we-created-our-analytical-system-for-billions-of-rows/"
-      },
-      {
-        "type": "observed",
-        "claim": "QuestionPro documents a MySQL-to-ClickHouse pipeline using Debezium, Kafka Connect and Kafka with under-one-second transfer latency.",
-        "source": "https://www.questionpro.com/engineering/software%20engineering/data%20engineering/how-we-created-our-analytical-system-for-billions-of-rows/"
-      },
-      {
-        "type": "observed",
-        "claim": "The published architecture powers QuestionPro BI and is designed to give users instant analytical results.",
-        "source": "https://www.questionpro.com/engineering/software%20engineering/data%20engineering/how-we-created-our-analytical-system-for-billions-of-rows/"
-      },
-      {
-        "type": "hypothesis",
-        "claim": "A fair evaluation would need to demonstrate measurable value against an already successful ClickHouse deployment, especially around concurrency, joins, operations, or total cost."
-      }
+      {"type": "observed", "claim": "QuestionPro says it selected ClickHouse after evaluating multiple analytical databases for a system handling billions of rows.", "source": "https://www.questionpro.com/engineering/software%20engineering/data%20engineering/how-we-created-our-analytical-system-for-billions-of-rows/"},
+      {"type": "observed", "claim": "QuestionPro documents a MySQL-to-ClickHouse pipeline using Debezium, Kafka Connect and Kafka with under-one-second transfer latency.", "source": "https://www.questionpro.com/engineering/software%20engineering/data%20engineering/how-we-created-our-analytical-system-for-billions-of-rows/"},
+      {"type": "observed", "claim": "The published architecture powers QuestionPro BI and is designed to give users instant analytical results.", "source": "https://www.questionpro.com/engineering/software%20engineering/data%20engineering/how-we-created-our-analytical-system-for-billions-of-rows/"},
+      {"type": "hypothesis", "claim": "A fair evaluation would need to demonstrate measurable value against an already successful ClickHouse deployment, especially around concurrency, joins, operations, or total cost."}
     ]
   },
   {
@@ -66,22 +38,12 @@
     "retrieved_at": "2026-09-11",
     "signals": ["trino_hive", "large_scale", "fragmented_stack"],
     "commercial_signals": ["enterprise_domain", "technical_fit"],
+    "counter_signals": ["incumbent_meeting_requirements", "no_observed_pain"],
     "buying_committee": ["VP / Head of Data", "Data Platform Lead", "Analytics Engineering Lead"],
     "evidence": [
-      {
-        "type": "observed",
-        "claim": "Trino's official user catalog says Razorpay uses Trino with Spark, Hudi, S3 and Hive Metastore to query raw data-lake tables.",
-        "source": "https://trino.io/users"
-      },
-      {
-        "type": "observed",
-        "claim": "Razorpay describes Trino as fast, scalable, SQL-friendly and well integrated with its ecosystem.",
-        "source": "https://trino.io/users"
-      },
-      {
-        "type": "hypothesis",
-        "claim": "If interactive latency, concurrency, or serving-layer efficiency becomes material, an Apache Doris evaluation could be scoped as an acceleration layer rather than assumed as a wholesale replacement."
-      }
+      {"type": "observed", "claim": "Trino's official user catalog says Razorpay uses Trino with Spark, Hudi, S3 and Hive Metastore to query raw data-lake tables.", "source": "https://trino.io/users"},
+      {"type": "observed", "claim": "Razorpay describes Trino as fast, scalable, SQL-friendly and well integrated with its ecosystem.", "source": "https://trino.io/users"},
+      {"type": "hypothesis", "claim": "If interactive latency, concurrency, or serving-layer efficiency becomes material, an Apache Doris evaluation could be scoped as an acceleration layer rather than assumed as a wholesale replacement."}
     ]
   },
   {
@@ -91,22 +53,12 @@
     "retrieved_at": "2026-09-11",
     "signals": ["trino_hive", "customer_dashboards", "large_scale"],
     "commercial_signals": ["enterprise_domain", "technical_fit"],
+    "counter_signals": ["no_observed_pain"],
     "buying_committee": ["Head of Data Platform", "Data Engineering Lead", "BI / Analytics Platform Lead"],
     "evidence": [
-      {
-        "type": "observed",
-        "claim": "Trino's official users page says Rapido uses Trino for query federation, data pipelines, KPI/system metrics monitoring and large-dataset analytics.",
-        "source": "https://trino.io/users"
-      },
-      {
-        "type": "observed",
-        "claim": "Rapido's Trino usage supports interactive analysis and visualization with Metabase and Superset.",
-        "source": "https://trino.io/users"
-      },
-      {
-        "type": "hypothesis",
-        "claim": "A serving-layer POC could be relevant only if user-facing or analyst-facing latency/concurrency is demonstrably constrained; current public evidence does not establish that pain."
-      }
+      {"type": "observed", "claim": "Trino's official users page says Rapido uses Trino for query federation, data pipelines, KPI/system metrics monitoring and large-dataset analytics.", "source": "https://trino.io/users"},
+      {"type": "observed", "claim": "Rapido's Trino usage supports interactive analysis and visualization with Metabase and Superset.", "source": "https://trino.io/users"},
+      {"type": "hypothesis", "claim": "A serving-layer POC could be relevant only if user-facing or analyst-facing latency/concurrency is demonstrably constrained; current public evidence does not establish that pain."}
     ]
   },
   {
@@ -116,22 +68,12 @@
     "retrieved_at": "2026-09-11",
     "signals": ["clickhouse", "realtime_product", "customer_dashboards", "large_scale"],
     "commercial_signals": ["enterprise_domain", "technical_fit"],
+    "counter_signals": ["recent_successful_migration_to_incumbent", "deep_incumbent_investment", "no_observed_pain"],
     "buying_committee": ["VP / Head of Data Infrastructure", "Video Analytics Platform Lead", "Principal Data Engineer"],
     "evidence": [
-      {
-        "type": "observed",
-        "claim": "Vimeo Engineering documented migrating video analytics from Apache Phoenix/HBase to ClickHouse.",
-        "source": "https://medium.com/vimeo-engineering-blog/clickhouse-is-in-the-house-413862c8ac28"
-      },
-      {
-        "type": "observed",
-        "claim": "Vimeo described real-time analytics spanning more than a billion viewing-log events per day for users ranging from creators to enterprises.",
-        "source": "https://medium.com/vimeo-engineering-blog/clickhouse-is-in-the-house-413862c8ac28"
-      },
-      {
-        "type": "hypothesis",
-        "claim": "The scale makes the workload technically relevant, but public evidence does not establish dissatisfaction with ClickHouse; any competitive motion must begin with discovery and normalized benchmarks."
-      }
+      {"type": "observed", "claim": "Vimeo Engineering documented migrating video analytics from Apache Phoenix/HBase to ClickHouse.", "source": "https://medium.com/vimeo-engineering-blog/clickhouse-is-in-the-house-413862c8ac28"},
+      {"type": "observed", "claim": "Vimeo described real-time analytics spanning more than a billion viewing-log events per day for users ranging from creators to enterprises.", "source": "https://medium.com/vimeo-engineering-blog/clickhouse-is-in-the-house-413862c8ac28"},
+      {"type": "hypothesis", "claim": "The scale makes the workload technically relevant, but public evidence does not establish dissatisfaction with ClickHouse; any competitive motion must begin with discovery and normalized benchmarks."}
     ]
   }
 ]
