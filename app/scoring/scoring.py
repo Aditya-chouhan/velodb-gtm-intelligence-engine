@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
+from importlib.resources import files
 from typing import Dict, Iterable, List, Mapping, Sequence
 
-CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "scoring_v2.json"
-_CONFIG = json.loads(CONFIG_PATH.read_text())
+_CONFIG = json.loads(files("app.scoring").joinpath("scoring_v2.json").read_text(encoding="utf-8"))
 SCORING_VERSION = _CONFIG["version"]
 
 
@@ -89,7 +88,6 @@ def score_signals(
     gross = sum(dimensions.values())
     score = round(_bounded(gross - counter_penalty), 1)
 
-    # Confidence reflects evidence quality and corroboration, not signal volume.
     confidence = round(
         _bounded(
             0.2
