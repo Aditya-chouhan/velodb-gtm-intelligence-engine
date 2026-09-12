@@ -61,7 +61,22 @@ Priority             32
 
 Interpretation: **highly relevant workload, low current displacement urgency.**
 
-Confidence is based on source coverage and independent corroboration—not the number of detected signals. Duplicate signals do not increase the score.
+Confidence is based on source coverage and independent corroboration—not the number of detected signals. Duplicate signals do not increase the score, and unknown signals are surfaced rather than silently rewarded.
+
+### Governed scoring configuration
+
+The model weights are not hidden inside business logic. They live in:
+
+[`config/scoring_v2.json`](config/scoring_v2.json)
+
+That file versions:
+
+- dimension caps;
+- technical / timing / pain signal weights;
+- commercial-intent weights;
+- counter-signal penalties.
+
+`app/scoring/scoring.py` loads the configuration and emits `scoring_version` with every analysis result. A production deployment should review scoring changes as governed model changes rather than ad-hoc code edits.
 
 Full methodology: [`docs/SCORING_MODEL_V2.md`](docs/SCORING_MODEL_V2.md)
 
@@ -73,10 +88,10 @@ Full methodology: [`docs/SCORING_MODEL_V2.md`](docs/SCORING_MODEL_V2.md)
 | Counter-signals | **implemented** | reduce priority without erasing technical fit |
 | Public web collector | **implemented** | page reachability + disclosed keyword presence |
 | Weekly source smoke test | **implemented in GitHub Actions** | source health only |
-| Competitive/use-case routing | **implemented** | deterministic hypothesis routing |
-| Technical POC planner | **implemented** | plan generation, not benchmark performance |
+| Competitive/use-case routing | implemented | deterministic hypothesis routing |
+| Technical POC planner | implemented | plan generation, not benchmark performance |
 | Apache Doris workload harness | **implemented** | reproducible workload; no invented timings |
-| Closed-loop outcome model | **implemented architecturally** | no real VeloDB outcomes claimed |
+| Closed-loop outcome model | implemented architecturally | no real VeloDB outcomes claimed |
 | Internal VeloDB product/CRM telemetry | **not available / not claimed** | requires authorization |
 | Apache Doris upstream contribution | **planned, not claimed** | only after a real upstream need is reproduced |
 
@@ -107,7 +122,7 @@ python -m app.main --dataset public
 
 ## Executive dashboard
 
-The Streamlit UI now starts with an executive market view showing:
+The Streamlit UI starts with an executive market view showing:
 
 - priority score;
 - technical fit;
@@ -207,12 +222,15 @@ It does **not** auto-rewrite weights. Production recalibration should require su
 ## Repository structure
 
 ```text
+config/
+└── scoring_v2.json         versioned scoring policy
+
 app/
 ├── agents/                 strategy + activation
 ├── collectors/             public evidence retrieval
 ├── intelligence/           evidence, routing, POC, commercialization, feedback
-├── scoring/                multidimensional scoring v2
-├── api/                    FastAPI
+├── scoring/                governed multidimensional scoring
+├── api/                    FastAPI contract + model metadata
 ├── dashboard.py            executive + account review UI
 └── main.py                 CLI for demo/public datasets
 
@@ -239,15 +257,37 @@ streamlit run app/dashboard.py
 uvicorn app.api.routes:app --reload
 ```
 
+## Validation coverage
+
+The test suite checks, among other things:
+
+- model versioning and score dimensions;
+- duplicate-signal deduplication;
+- score bounds;
+- counter-signal behavior;
+- confidence independence from raw signal count;
+- unknown-signal visibility;
+- evidence/source validation;
+- API boundary metadata;
+- POC routing;
+- commercialization stages;
+- feedback-loop guardrails;
+- public collector parsing;
+- end-to-end account orchestration.
+
+GitHub Actions also executes the public-account dataset so configuration or model changes cannot silently break the flagship path.
+
 ## Engineering / evidence guardrails
 
 - observed facts and hypotheses are stored separately;
 - public source URLs are preserved;
 - duplicate signals do not double-count;
+- unknown signals are surfaced;
 - confidence comes from evidence quality, not signal volume;
 - counter-evidence reduces priority;
-- scoring is versioned (`2.0.0`);
-- CI tests the decision logic and public dataset execution;
+- scoring is versioned (`2.0.0`) and externally configured;
+- API metadata explicitly states this is not a purchase-probability model;
+- CI tests decision logic and public-dataset execution;
 - weekly source checks surface stale/broken evidence;
 - private VeloDB data is never implied;
 - no benchmark, pipeline, revenue or upstream-contribution result is fabricated.
