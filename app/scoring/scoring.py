@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Sequence
 
-SCORING_VERSION = "2.0.0"
+CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "scoring_v2.json"
+_CONFIG = json.loads(CONFIG_PATH.read_text())
+SCORING_VERSION = _CONFIG["version"]
 
 
 @dataclass(frozen=True)
@@ -16,42 +20,19 @@ class SignalRule:
 
 
 RULES: Dict[str, SignalRule] = {
-    "clickhouse": SignalRule("clickhouse", "ClickHouse detected", 18, "fit", "Strong competitive/workload relevance; not proof of pain."),
-    "elasticsearch": SignalRule("elasticsearch", "Elasticsearch/OpenSearch detected", 16, "fit", "Relevant observability/search workload."),
-    "loki": SignalRule("loki", "Loki detected", 15, "fit", "Relevant log-analytics workload."),
-    "trino_hive": SignalRule("trino_hive", "Trino/Presto/Hive detected", 14, "fit", "Relevant lakehouse/serving workload."),
-    "kafka_flink": SignalRule("kafka_flink", "Kafka/Flink detected", 9, "fit", "Real-time pipeline relevance."),
-    "realtime_product": SignalRule("realtime_product", "Real-time analytics product", 14, "fit", "Direct workload fit for low-latency analytics."),
-    "customer_dashboards": SignalRule("customer_dashboards", "Customer-facing dashboards", 10, "fit", "Potential concurrency/latency sensitivity."),
-    "ai_context": SignalRule("ai_context", "AI/RAG/agent infrastructure", 14, "fit", "Potential context/agent-observability motion."),
-    "large_scale": SignalRule("large_scale", "Large / fast-growing data scale", 9, "fit", "Scale increases technical relevance."),
-    "fragmented_stack": SignalRule("fragmented_stack", "Multiple analytical systems", 12, "pain", "Potential consolidation complexity, subject to discovery."),
-    "data_platform_hiring": SignalRule("data_platform_hiring", "Data-platform hiring", 12, "timing", "Active infrastructure investment signal."),
-    "clickhouse_hiring": SignalRule("clickhouse_hiring", "Hiring for ClickHouse experience", 15, "timing", "Strong stack + timing evidence."),
-    "recent_growth": SignalRule("recent_growth", "Recent funding / rapid growth", 8, "timing", "Possible budget/timing signal."),
+    key: SignalRule(
+        key=key,
+        label=value["label"],
+        points=value["points"],
+        dimension=value["dimension"],
+        rationale=value["rationale"],
+    )
+    for key, value in _CONFIG["signal_rules"].items()
 }
 
-COMMERCIAL_SIGNAL_POINTS = {
-    "enterprise_domain": 6,
-    "technical_fit": 8,
-    "oss_activity": 4,
-    "docs_interest": 5,
-    "trial_started": 12,
-    "data_loaded": 14,
-    "repeat_queries": 12,
-    "multi_user": 10,
-    "integration_connected": 10,
-}
-
-COUNTER_SIGNAL_POINTS = {
-    "incumbent_meeting_requirements": 14,
-    "recent_successful_migration_to_incumbent": 16,
-    "deep_incumbent_investment": 10,
-    "no_observed_pain": 8,
-    "stale_evidence": 8,
-}
-
-DIMENSION_CAPS = {"fit": 40, "pain": 20, "timing": 15, "intent": 15, "evidence": 10}
+COMMERCIAL_SIGNAL_POINTS = _CONFIG["commercial_signal_points"]
+COUNTER_SIGNAL_POINTS = _CONFIG["counter_signal_points"]
+DIMENSION_CAPS = _CONFIG["dimension_caps"]
 
 
 def _bounded(value: float, low: float = 0, high: float = 100) -> float:
@@ -63,7 +44,8 @@ def evidence_score(evidence: Sequence[Mapping]) -> dict:
     hypotheses = [e for e in evidence if e.get("type") == "hypothesis"]
     sourced = [e for e in observed if e.get("source")]
     source_coverage = len(sourced) / max(1, len(observed))
-    corroboration = min(1.0, len({e.get("source") for e in sourced if e.get("source")}) / 3)
+    unique_sources = {e.get("source") for e in sourced if e.get("source")}
+    corroboration = min(1.0, len(unique_sources) / 3)
     score = round(10 * (0.65 * source_coverage + 0.35 * corroboration), 1) if observed else 0.0
     return {
         "score": score,
@@ -71,6 +53,7 @@ def evidence_score(evidence: Sequence[Mapping]) -> dict:
         "hypothesis_count": len(hypotheses),
         "source_coverage": round(source_coverage, 2),
         "independent_source_factor": round(corroboration, 2),
+        "unique_source_count": len(unique_sources),
     }
 
 
@@ -106,7 +89,7 @@ def score_signals(
     gross = sum(dimensions.values())
     score = round(_bounded(gross - counter_penalty), 1)
 
-    # Confidence reflects evidence quality and independent corroboration, not signal count.
+    # Confidence reflects evidence quality and corroboration, not signal volume.
     confidence = round(
         _bounded(
             0.2
@@ -130,6 +113,7 @@ def score_signals(
         "matched_rules": [r.__dict__ for r in matched],
         "matched_commercial_signals": [k for k in commercial_keys if k in COMMERCIAL_SIGNAL_POINTS],
         "matched_counter_signals": [k for k in counter_keys if k in COUNTER_SIGNAL_POINTS],
+        "unknown_signals": [k for k in keys if k not in RULES],
     }
 
 
