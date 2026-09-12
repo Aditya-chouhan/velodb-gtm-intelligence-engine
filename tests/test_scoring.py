@@ -14,13 +14,9 @@ def test_scoring_is_multidimensional_and_versioned():
         ],
         commercial_signal_keys=["enterprise_domain", "technical_fit"],
     )
-    assert result["scoring_version"] == SCORING_VERSION
+    assert result["scoring_version"] == SCORING_VERSION == "2.0.0"
     assert set(result["dimensions"]) == {
-        "technical_fit",
-        "pain_evidence",
-        "timing",
-        "intent",
-        "evidence_quality",
+        "technical_fit", "pain_evidence", "timing", "intent", "evidence_quality"
     }
     assert 0 <= result["score"] <= 100
 
@@ -41,7 +37,7 @@ def test_counter_signals_reduce_priority_without_erasing_fit():
     )
     assert countered["dimensions"]["technical_fit"] == baseline["dimensions"]["technical_fit"]
     assert countered["score"] < baseline["score"]
-    assert countered["counter_signal_penalty"] > 0
+    assert countered["counter_signal_penalty"] == 22
 
 
 def test_confidence_depends_on_evidence_quality_not_signal_count():
@@ -61,6 +57,34 @@ def test_duplicate_signals_do_not_double_count():
     once = score_signals(["clickhouse"])
     duplicate = score_signals(["clickhouse", "clickhouse", "clickhouse"])
     assert duplicate["score"] == once["score"]
+    assert duplicate["matched_rules"] == once["matched_rules"]
+
+
+def test_unknown_signals_are_visible_but_do_not_score():
+    baseline = score_signals(["clickhouse"])
+    result = score_signals(["clickhouse", "invented_signal"])
+    assert result["score"] == baseline["score"]
+    assert result["unknown_signals"] == ["invented_signal"]
+
+
+def test_score_remains_bounded_under_many_positive_signals():
+    result = score_signals(
+        [
+            "clickhouse", "elasticsearch", "loki", "trino_hive", "kafka_flink",
+            "realtime_product", "customer_dashboards", "ai_context", "large_scale",
+            "fragmented_stack", "data_platform_hiring", "clickhouse_hiring", "recent_growth",
+        ],
+        evidence=[
+            observed("A", "https://example.com/a"),
+            observed("B", "https://example.com/b"),
+            observed("C", "https://example.com/c"),
+        ],
+        commercial_signal_keys=[
+            "enterprise_domain", "technical_fit", "trial_started", "data_loaded",
+            "repeat_queries", "multi_user", "integration_connected",
+        ],
+    )
+    assert 0 <= result["score"] <= 100
 
 
 def test_priority_band_boundaries():
